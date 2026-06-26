@@ -5,6 +5,8 @@ from ...database import get_db
 from ...schemas import UserCreate, UserResponse, Token
 from ...services import user_service
 from ...core.security import verify_password, create_access_token
+from ...models import User
+from ..dependencies import get_current_user
 
 router = APIRouter()
 
@@ -58,3 +60,13 @@ def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2Passw
     # 4 & 5. Generate and return JWT
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me", response_model=UserResponse)
+def read_users_me(current_user: User = Depends(get_current_user)):
+    """
+    Get current logged in user.
+    - Requires a valid JWT access token.
+    - Extracts the user from the token payload.
+    - Returns the secure user profile.
+    """
+    return current_user
